@@ -81,6 +81,7 @@ void project_publish(struct Project *p[])
 			p[i]->unit,
 			&(p[i]->down),
 			&(p[i]->up));
+		printf("\n\n"); 
 									
 			// 增加检测输入正确性代码 	
 		
@@ -100,21 +101,23 @@ void athlete_checkin(struct Project *p[])
 	int num; // 欲参加的项目数量 
 	int input; // 用户输入的序号 
 	 
+	
+	printf("\n<运动员报名登记>"); 
 	//获取项目数量,并输出项目名称 
-	printf("\n已发布的项目：\n"); 
 	while(p[i])
 		{
-			printf("%d:%10s\t",i+1,p[i]->name); 
 	    	project_num += 1;
 	    	i += 1; 
-	    	if (i%5==0) printf("\n");
 		}
 	    
 	
 	while(sign)
 	{
 		struct Athlete *athlete_p;
-		athlete_p = (struct Athlete *)malloc(sizeof(struct Athlete));	
+		athlete_p = (struct Athlete *)malloc(sizeof(struct Athlete));
+		for(;i<10;i++)
+			athlete_p->score[i] = 0; 
+			
 
 		printf("\n输入运动员姓名、性别、单位，以空格或回车分隔：");
 									
@@ -122,9 +125,17 @@ void athlete_checkin(struct Project *p[])
 		
 		scanf("%s%s%s", athlete_p->name, athlete_p->gender, athlete_p->organization);
 		
-		printf("输入运动员<%s>要参加的下项目数量：",athlete_p->name);
+		printf("<%s> 参加的项目数量：",athlete_p->name);
 		scanf("%d",&num);
-		printf("输入项目序号");
+		
+		printf("输入项目对应序号：\n");
+		for(i=0;i<project_num;i++)
+		{
+			printf("%d:%10s\t",i+1,p[i]->name); 
+			if (i%5==0) printf("\n");
+			
+		}			
+			
 		for(i=0;i<num;i++)
 		{
 			scanf("%d",&input);
@@ -139,6 +150,8 @@ void athlete_checkin(struct Project *p[])
 				}
 			else printf("\n输入序号对应的项目不存在！"); 
 		}
+		
+		printf("\n");
 		
 //		printf("\n\n尝试查询运动员：\
 //		\n1:%s\
@@ -170,7 +183,7 @@ void swap(struct Project **a, struct Project **b)
 void orderbook_generation(struct Project *p[])
 {
 	//复制一份项目指针数组
-	struct Project *order[100];
+	struct Project *order[100];//开辟内存 
 	memcpy(order,p,sizeof(struct Project *)*100);
 	
 	//获取项目数量
@@ -219,7 +232,8 @@ void orderbook_generation(struct Project *p[])
 			order[i]->unit,
 			order[i]->down,
 			order[i]->up);
-		}		
+		}
+	printf("\n");	
 }
 
 void grade_input(struct Project *p[])
@@ -264,9 +278,52 @@ void grade_input(struct Project *p[])
 	else printf("输入的序号对应的项目不存在！\n");
 }
 
-void sportsmeet_card()
+void sportsmeet_card(struct Project *p[])
 {
+	int sign=1;
+	int i,j,k=0;
+	int athlete_num=0;
+	struct Athlete *athlete_list[3000]={0}; //定义一个指向运动员结构体的指针数组，
+	int athlete_list_len=0;	
+	int add_athlete_sign=1;								  //以求运动员数量 
+	 
+	//获取项目数量
+	int project_num=0;
+	while(p[project_num])
+		project_num += 1;
 	
+	//获取运动员数量 存在问题，时间复杂度太大 
+	for(i=0;i<project_num;i++)
+		for(j=0;p[i]->athlete[j];j++)
+		{
+			for(k=0;k<athlete_list_len;k++)
+				if (p[i]->athlete[j]->name == athlete_list[k]->name)//不应该将同姓名但单位不同的视为同一运动员
+					{sign = 0; break;} 	
+			if (sign)
+				{
+					athlete_list[k]=p[i]->athlete[j];
+					athlete_list_len += 1;
+				}
+		} 
+			
+			
+				
+	//结束判断				
+	i = project_num;
+	while(i)
+	{
+		i -= 1;
+		if (!(p[i]->athlete[0]->score[i])) // 仅检查一个运动员的成绩登记与否，需要确保
+			{sign=0;break;}						   // 成绩登入函数不能输入部分运动员成绩 
+	}	
+	
+	if (sign)
+	{
+		printf("\n本次运动会顺利结束，以下为运动会报表：");
+		printf("\n共举行<%d>个比赛项目，共有<%d>名运动员参赛。",project_num,athlete_list_len);
+		
+	}	
+	else printf("运动会未能结束，存在未登入成绩的项目。\n\n");
 }
 
 void seting()
@@ -308,7 +365,7 @@ int main()
 					case 2:{athlete_checkin(list);break;}
 					case 3:{orderbook_generation(list);break;}
 					case 4:{grade_input(list);break; }
-					case 5:{sportsmeet_card();break;} 
+					case 5:{sportsmeet_card(list);break;} 
 					case 6:{seting();break;}
 					case 7:{data_backup();break;}
 					case 8:{sign=0;break;}
